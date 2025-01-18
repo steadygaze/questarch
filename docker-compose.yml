@@ -1,0 +1,73 @@
+# Docker compose setup for the app, suitable for development only.
+
+services:
+  inksite:
+    build: .
+    container_name: inksite
+    networks:
+      - main_network
+    ports:
+      - "3000:3000" # server
+      - "3001:3001" # live reload
+    tty: true # for terminal colors
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+      LEPTOS_TAILWIND_VERSION: "v4.0.0-beta.9"
+      VALKEY_CONNECTION_STRING: "valkey://valkey:6379"
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore: # .dockerignore paths ignored already
+            - Cargo.toml
+        - action: sync+restart
+          path: ./Cargo.toml
+          target: /app/Cargo.toml
+
+  valkey:
+    container_name: valkey
+    image: valkey/valkey:8
+    networks:
+      - main_network
+    volumes:
+      - ./docker/data/valkey:/data
+    ports:
+      - 6379:6379
+    restart: always
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    networks:
+      - main_network
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - ./docker/data/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --dbname=$${POSTGRES_DB} --username=$${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 5s
+
+networks:
+  main_network:
