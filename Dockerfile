@@ -1,10 +1,8 @@
 # Example: https://book.leptos.dev/deployment/ssr.html#creating-a-containerfile
 
 FROM rustlang/rust:nightly
-# RUN useradd -ms /bin/sh -u 1001 inkuser
-# USER inkuser
 
-RUN apt update && apt install -y pkg-config libssl-dev
+RUN apt update && apt install -y pkg-config libssl-dev wget
 
 # cargo-binstall makes it easier to install other cargo extensions
 RUN wget https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz

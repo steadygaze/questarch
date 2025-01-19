@@ -15,14 +15,12 @@ POSTGRES_DB=ink
 Then, run from the project root directory:
 
 ```shell
-docker compose up --watch --remove-orphans
+docker compose up --watch
 ```
 
-To attach to and run commands in the running container (for example, the `sqlx` CLI):
+If you make changes to a `Dockerfile` or the `docker-compose.yml` environment, you may have to pass `--build` and `--remove-orphans` to `docker compose` to rebuild the images.
 
-```shell
-docker exec -it inksite bash
-```
+### Test data
 
 To wipe Postgres and Valkey data, simply run:
 
@@ -30,7 +28,21 @@ To wipe Postgres and Valkey data, simply run:
 rm -rf docker/data
 ```
 
-If you make changes to a `Dockerfile` or the `docker-compose.yml` environment, you may have to pass `--build` and `--remove-orphans` to `docker compose` to rebuild the images.
+Or you can save the data to a different location for testing.
+
+### Running commands
+
+To attach to and run arbitrary commands in the running container (for example, to use the `sqlx` CLI):
+
+```shell
+docker exec -it inksite bash
+```
+
+To run `psql` to use the database directly (`sh -c` is needed to expand `$POSTGRES_USER`):
+
+```shell
+docker exec -it postgres sh -c 'psql -U $POSTGRES_USER'
+```
 
 ### Memory overcommit
 
@@ -93,3 +105,29 @@ All three of the following need to be in sync:
 
 All three should be pinned to compatible versions in Docker. You may need to rebuild the main container to install newer versions of the packages by running with `docker compose --watch --build` once.
 
+## Miscellaneous
+
+### Avoiding wasm build errors
+
+There are numerous dependencies that can and should only run on the server. `cargo-leptos` builds the server by enabling the `ssr` feature. When adding a server-only dependency, you also need to configure it to be optional and only built when the `ssr` feature is enabled in `Cargo.toml`. Otherwise, Cargo will build them targeting wasm, and you'll likely get a build error involving `mio`, OpenSSL, or similar. For example:
+
+```toml
+[dependencies]
+# ...
+sqlx = { version = "0.8.3", features = ["runtime-tokio", "tls-native-tls", "postgres"], optional = true }
+# ...
+
+[features]
+ssr = [
+  # ...
+  "dep:sqlx",
+  # ...
+]
+```
+
+Additionally, you'll need to specify that any code that uses the library is only to be built when the `ssr` feature is enabled.
+
+```rust
+#[cfg(feature = "ssr")]
+mod app_state; # Entire module set to conditionally compile in SSR mode.
+```

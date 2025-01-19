@@ -48,14 +48,16 @@ services:
       retries: 30
 
   postgres:
-    image: postgres:17
+    build: docker/postgres
     container_name: postgres
+    command: -c config_file=/etc/postgresql.conf
     networks:
       - main_network
     restart: always
     shm_size: 128mb
     volumes:
       - ./docker/data/postgres:/var/lib/postgresql/data
+      - ./docker/postgres/postgresql.conf:/etc/postgresql.conf
     ports:
       - 5432:5432
     environment:
