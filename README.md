@@ -30,6 +30,10 @@ rm -rf docker/data
 
 Or you can save the data to a different location for testing.
 
+### Build output
+
+By default, build outputs are persisted in `docker/site` and `docker/target` so incremental builds can be done even after the container is rebuilt. You can wipe this output simply by deleting these directories.
+
 ### Running commands
 
 To attach to and run arbitrary commands in the running container (for example, to use the `sqlx` CLI):
