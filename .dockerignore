@@ -1,5 +1,6 @@
 LICENSE
 README.md
+.git/
 
 # Compiled artifacts (outside the dev container, e.g. by rust-analyzer)
 Cargo.lock
