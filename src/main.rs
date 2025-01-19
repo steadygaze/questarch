@@ -25,7 +25,16 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("database should open");
 
-    let app_state = AppState { db_pool };
+    let valkey_url = std::env::var("VALKEY_URL").expect("VALKEY_URL should be set");
+    let valkey_config = fred::prelude::Config::from_url(&valkey_url)
+        .expect("should be able to construct Valkey config");
+    let valkey_pool = fred::prelude::Pool::new(valkey_config, None, None, None, 5)
+        .expect("should be able to create Valkey pool");
+
+    let app_state = AppState {
+        db_pool,
+        valkey_pool,
+    };
 
     HttpServer::new(move || {
         // Generate the list of routes in your Leptos App
