@@ -12,8 +12,10 @@ async fn main() -> std::io::Result<()> {
     use actix_web::*;
     use leptos::config::get_configuration;
     use leptos::prelude::*;
-    use leptos_actix::{LeptosRoutes, generate_route_list};
+    use leptos_actix::{generate_route_list, LeptosRoutes};
     use leptos_meta::MetaTags;
+
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug")).init();
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
@@ -81,7 +83,8 @@ async fn main() -> std::io::Result<()> {
                 },
             )
             .app_data(web::Data::new(leptos_options.to_owned()))
-        //.wrap(middleware::Compress::default())
+            .wrap(middleware::Compress::default())
+            .wrap(middleware::Logger::default())
     })
     .bind(&addr)?
     .run()
