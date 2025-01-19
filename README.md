@@ -53,10 +53,10 @@ docker exec -it postgres sh -c 'psql -U $POSTGRES_USER'
 The option `vm.overcommit_memory` is necessary for Valkey to ensure persistence works ([1](https://redis.io/docs/latest/develop/get-started/faq/#background-saving-fails-with-a-fork-error-on-linux), [2](https://medium.com/@akhshyganesh/redis-enabling-memory-overcommit-is-a-crucial-configuration-68dbb77dae5f)). This is a property of the host OS and not the Valkey container. If unset, Valkey will print a warning when it starts. You can dismiss the warning by running
 
 ```shell
-# sysctl vm.overcommit_memory=1
+sudo sysctl vm.overcommit_memory=1
 ```
 
-before starting Valkey. To save this setting between reboots, add
+in the host before starting Valkey. To save this setting between reboots, add
 
 ```
 vm.overcommit_memory = 1
@@ -71,13 +71,6 @@ to `/etc/sysctl.conf`.
 You may see an error message like this when building the frontend after a `git pull`.
 
 ```
-       Front compiling WASM
-Error: at `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cargo-leptos-0.2.24/src/compile/front.rs:51:30`
-
-Caused by:
-    0: at `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cargo-leptos-0.2.24/src/compile/front.rs:126:10`
-    1:
-
        it looks like the Rust project used to create this Wasm file was linked against
        version of wasm-bindgen that uses a different bindgen format than this binary:
 
@@ -87,18 +80,6 @@ Caused by:
        Currently the bindgen format is unstable enough that these two schema versions
        must exactly match. You can accomplish this by either updating this binary or
        the wasm-bindgen dependency in the Rust project.
-
-       You should be able to update the wasm-bindgen dependency with:
-
-           cargo update -p wasm-bindgen --precise 0.2.99
-
-       don't forget to recompile your Wasm file! Alternatively, you can update the
-       binary with:
-
-           cargo install -f wasm-bindgen-cli --version 0.2.100
-
-       if this warning fails to go away though and you're not sure what to do feel free
-       to open an issue at https://github.com/rustwasm/wasm-bindgen/issues!
 ```
 
 All three of the following need to be in sync:
@@ -118,13 +99,13 @@ There are numerous dependencies that can and should only run on the server. `car
 ```toml
 [dependencies]
 # ...
-sqlx = { version = "0.8.3", features = ["runtime-tokio", "tls-native-tls", "postgres"], optional = true }
+fred = { version = "10.0.3", features = ["transactions", "enable-native-tls"], optional = true }
 # ...
 
 [features]
 ssr = [
   # ...
-  "dep:sqlx",
+  "dep:fred",
   # ...
 ]
 ```
@@ -133,5 +114,12 @@ Additionally, you'll need to specify that any code that uses the library is only
 
 ```rust
 #[cfg(feature = "ssr")]
-mod app_state; # Entire module set to conditionally compile in SSR mode.
+mod app_state; // Entire module set to conditionally compile in SSR mode
+
+#[cfg(feature = "ssr")]
+struct MyStruct {
+  // ...
+}
 ```
+
+The `server` module already is configured this way in `main.rs`.
