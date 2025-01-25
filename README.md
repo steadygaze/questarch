@@ -90,6 +90,10 @@ All three of the following need to be in sync:
 
 All three should be pinned to compatible versions in Docker. You may need to rebuild the main container to install newer versions of the packages by running with `docker compose --watch --build` once.
 
+### Styles not updating
+
+In some circumstances, hot reloading will update the `class` attribute, but may not reload the stylesheet. Tailwind, when building, generates a stylesheet with only the utility classes that are actually used in the project. This is a problem if you use any new Tailwind classes that haven't been previously generated; the browser will not see the new CSS classes in its cached stylesheet. To fix this, hard refresh (`ctrl-shift-r`) your browser manually or disable caching.
+
 ## Miscellaneous
 
 ### Avoiding wasm build errors
