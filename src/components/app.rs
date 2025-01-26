@@ -5,6 +5,9 @@ use leptos_router::{
     components::{Route, Router, Routes},
 };
 
+use crate::components;
+use crate::components::ui::*;
+
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
@@ -20,9 +23,18 @@ pub fn App() -> impl IntoView {
 
         // content for this welcome page
         <Router>
+            <nav class="flex gap-2 justify-start">
+                <div>
+                    <ANorm href="/">Home</ANorm>
+                </div>
+                <div>
+                    <ANorm href="/login">Login/register</ANorm>
+                </div>
+            </nav>
             <main>
                 <Routes fallback=move || "Not found.">
                     <Route path=StaticSegment("") view=HomePage />
+                    <Route path=StaticSegment("login") view=components::login::Login />
                     <Route path=WildcardSegment("any") view=NotFound />
                 </Routes>
             </main>
@@ -39,7 +51,6 @@ fn HomePage() -> impl IntoView {
 
     view! {
         <h1 class="text-xl font-bold">"Welcome to Leptos!"</h1>
-        <p>"Hello world!"</p>
         <button on:click=on_click>"Click Me: " {count}</button>
     }
 }

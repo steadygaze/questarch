@@ -1,6 +1,8 @@
 #[cfg(feature = "ssr")]
 mod app_state;
 mod components;
+#[cfg(feature = "ssr")]
+mod key;
 
 #[cfg(feature = "ssr")]
 #[actix_web::main]
