@@ -1,3 +1,6 @@
+use leptos::prelude::*;
+
+/// Easily cloneable prototype.
 #[allow(dead_code)] // For prototyping
 #[derive(Clone)]
 pub struct AppState {
