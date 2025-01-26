@@ -9,8 +9,8 @@ where
     H: ToHref + Send + Sync + 'static,
 {
     view! {
-        <A href=href>
-            <span class="text-blue-600 hover:text-blue-400 hover:underline">{children()}</span>
-        </A>
+        <span class="text-blue-600 hover:text-blue-400 hover:underline *:aria-[current='page']:underline">
+            <A href=href>{children()}</A>
+        </span>
     }
 }
