@@ -20,6 +20,8 @@ services:
         condition: service_healthy
       valkey:
         condition: service_healthy
+      mailpit:
+        condition: service_healthy
     volumes:
       - ./docker/site:/app/site
       - ./docker/target:/app/target
@@ -73,6 +75,28 @@ services:
       timeout: 60s
       retries: 5
       start_period: 5s
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    networks:
+      - main_network
+    restart: unless-stopped
+    volumes:
+      - ./docker/data:/data
+    ports:
+      - 8025:8025
+      - 1025:1025
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "1025"]
+      interval: 2s
+      timeout: 1s
+      retries: 50
 
 networks:
   main_network:
