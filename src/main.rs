@@ -10,9 +10,10 @@ async fn main() -> std::io::Result<()> {
 
     use actix_files::Files;
     use actix_web::*;
+    use fred::prelude::ClientLike;
     use leptos::config::get_configuration;
     use leptos::prelude::*;
-    use leptos_actix::{generate_route_list, LeptosRoutes};
+    use leptos_actix::{LeptosRoutes, generate_route_list};
     use leptos_meta::MetaTags;
 
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug")).init();
@@ -32,6 +33,10 @@ async fn main() -> std::io::Result<()> {
         .expect("should be able to construct Valkey config");
     let valkey_pool = fred::prelude::Pool::new(valkey_config, None, None, None, 5)
         .expect("should be able to create Valkey pool");
+    valkey_pool
+        .init()
+        .await
+        .expect("should be able to initialize Valkey pool");
 
     let app_state = AppState {
         db_pool,
