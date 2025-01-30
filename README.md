@@ -88,11 +88,23 @@ All three of the following need to be in sync:
 - `wasm-bindgen-cli` installed at the user/system level in Docker (matches `wasm-bindgen`)
 - `cargo-leptos` installed at the user/system level in Docker (depends on same version of `wasm-bindgen`)
 
-All three should be pinned to compatible versions in Docker. You may need to rebuild the main container to install newer versions of the packages by running with `docker compose --watch --build` once.
+All three should be pinned to compatible versions in Docker. You may need to rebuild the main container to install newer versions of the packages.
+
+```
+docker compose --watch --build
+```
 
 ### Styles not updating
 
 In some circumstances, hot reloading will update the `class` attribute, but may not reload the stylesheet. Tailwind, when building, generates a stylesheet with only the utility classes that are actually used in the project. This is a problem if you use any new Tailwind classes that haven't been previously generated; the browser will not see the new CSS classes in its cached stylesheet. To fix this, hard refresh (`ctrl-shift-r`) your browser manually or disable caching.
+
+### Missing new files, compilation errors after `git pull`, etc.
+
+If on a restart of `docker compose --watch`, `rustc` claims a newly-added file is missing, you get compilation errors after a `git pull`, or you otherwise get compilation errors that don't make sense, then your container's source code may be out of sync with the state of the host's. This can happen if files are updated while Docker compose is not running. If you suspect this happened, simply rebuild the container.
+
+```
+docker compose --watch --build
+```
 
 ## Miscellaneous
 
