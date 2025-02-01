@@ -9,6 +9,8 @@ use std::collections::HashMap;
 use crate::app_state::*;
 #[cfg(feature = "ssr")]
 use crate::key;
+#[cfg(feature = "ssr")]
+use crate::mail;
 
 #[cfg(feature = "ssr")]
 use fred::prelude::{HashesInterface, KeysInterface, TransactionInterface};
@@ -19,16 +21,29 @@ use rand::{
     thread_rng,
 };
 
+#[cfg(feature = "ssr")]
+use lettre::AsyncTransport;
+
 #[allow(dead_code)] // Used in a server function, but rustc doesn't count it.
 const LOGIN_SESSION_EXPIRATION_SEC: i64 = 20 * 60; // 20 minutes
 
-/// Email authentication first stage, where a challenge is generated/returned.
+/// Email authentication first stage, where a challenge is generated and
+/// returned, while the correct response is sent via email.
+///
+/// See https://en.wikipedia.org/wiki/Challenge%E2%80%93response_authentication
 #[server]
 pub async fn get_email_login_challenge(email: String) -> Result<String, ServerFnError> {
     let app_state = use_app_state()?;
     let challenge = Alphanumeric.sample_string(&mut thread_rng(), 32);
     let response = Alphanumeric.sample_string(&mut thread_rng(), 8);
-    leptos::logging::log!("Challenge: {challenge}, response: {response}");
+
+    let message = mail::login_code(&email, &response)
+        .or_else(|err| Err(ServerFnError::new(format!("Couldn't send mail: {err}"))))?;
+    app_state
+        .mailer
+        .send(message)
+        .await
+        .or_else(|err| Err(ServerFnError::new(format!("Couldn't send mail: {err}"))))?;
 
     let tx = app_state.valkey_pool.multi();
     let key = key::email_auth_code(&challenge);

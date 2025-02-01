@@ -3,6 +3,8 @@ mod app_state;
 mod components;
 #[cfg(feature = "ssr")]
 mod key;
+#[cfg(feature = "ssr")]
+mod mail;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

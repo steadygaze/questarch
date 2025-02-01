@@ -20,6 +20,10 @@ docker compose up --watch
 
 If you make changes to a `Dockerfile` or the `docker-compose.yml` environment, you may have to pass `--build` and `--remove-orphans` to `docker compose` to rebuild the images.
 
+### Receiving email
+
+All emails sent in the dev environment, e.g. email login codes, are collected by a locally running [Mailpit](https://mailpit.axllent.org/) instance. Go to `localhost:8025` to view the emails sent.
+
 ### Test data
 
 To wipe Postgres and Valkey data, simply run:

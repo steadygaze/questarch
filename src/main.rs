@@ -3,6 +3,8 @@ mod app_state;
 mod components;
 #[cfg(feature = "ssr")]
 mod key;
+#[cfg(feature = "ssr")]
+mod mail;
 
 #[cfg(feature = "ssr")]
 #[actix_web::main]
@@ -17,6 +19,7 @@ async fn main() -> std::io::Result<()> {
     use leptos::prelude::*;
     use leptos_actix::{LeptosRoutes, generate_route_list};
     use leptos_meta::MetaTags;
+    use lettre::{AsyncSmtpTransport, Tokio1Executor};
 
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug")).init();
 
@@ -40,9 +43,15 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("should be able to initialize Valkey pool");
 
+    let smtp_url = std::env::var("SMTP_URL").expect("SMTP_URL should be set");
+    let mailer = AsyncSmtpTransport::<Tokio1Executor>::from_url(&smtp_url)
+        .expect("should be able to initialize mailer")
+        .build();
+
     let app_state = AppState {
         db_pool,
         valkey_pool,
+        mailer,
     };
 
     HttpServer::new(move || {
