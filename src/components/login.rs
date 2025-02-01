@@ -1,6 +1,3 @@
-// For protyping only.
-#![allow(unused_variables)]
-#![allow(dead_code)]
 /// Login/new registration views.
 use crate::components::ui::*;
 use leptos::prelude::*;
@@ -22,6 +19,7 @@ use rand::{
     thread_rng,
 };
 
+#[allow(dead_code)] // Used in a server function, but rustc doesn't count it.
 const LOGIN_SESSION_EXPIRATION_SEC: i64 = 20 * 60; // 20 minutes
 
 /// Email authentication first stage, where a challenge is generated/returned.
@@ -77,7 +75,7 @@ pub async fn answer_email_login_challenge(
     if email == *correct_email && response == *correct_response {
         tokio::spawn(async move {
             if let Err(err) = app_state.valkey_pool.del::<(), _>(&key).await {
-                leptos::logging::warn!("Error deleting key {key} ignored");
+                leptos::logging::warn!("Error deleting key {key} ignored: {err}");
             }
         });
         Ok(true)
@@ -98,7 +96,7 @@ pub fn Login() -> impl IntoView {
     // into the form).
     let last_email = RwSignal::new("".to_string());
 
-    let save_last_email = Effect::new(move || {
+    let _save_last_email = Effect::new(move || {
         // input is cleared as soon as the server action resolves, so we must
         // save this so the UI doesn't update then.
         if let Some(server_last_email) = get_email_login_challenge.input().get() {
@@ -106,16 +104,21 @@ pub fn Login() -> impl IntoView {
         }
     });
 
-    let propogate_challenge = Effect::new(move || {
+    let code_input_elem = NodeRef::<leptos::html::Input>::new();
+
+    // Handler after receiving the challenge from the server.
+    let _receive_challenge = Effect::new(move || {
         if let Some(Ok(server_challenge)) = get_email_login_challenge.value().get() {
             challenge.set(server_challenge);
+            if let Some(node) = code_input_elem.get() {
+                if let Err(err) = node.focus() {
+                    leptos::logging::warn!("Error focusing code input: {err:?}");
+                }
+            } else {
+                leptos::logging::warn!("Wanted to focus code input, but it wasn't mounted");
+            }
         }
     });
-
-    // holds the latest *returned* value from the server
-    let value = get_email_login_challenge.value();
-    // check if the server has returned an error
-    let has_error = move || value.with(|val| matches!(val, Some(Err(_))));
 
     view! {
         <h1 class="text-xl font-bold">"Login/register"</h1>
@@ -156,9 +159,9 @@ pub fn Login() -> impl IntoView {
                     view! {
                         {move || {
                             if let Some(Err(err)) = get_email_login_challenge.value().get() {
-                                format!("Error: {}", err.to_string())
+                                format!("Error: {err}")
                             } else {
-                                format!("")
+                                String::new()
                             }
                         }}
                     }
@@ -184,6 +187,7 @@ pub fn Login() -> impl IntoView {
                             name="response"
                             placeholder="response"
                             class="px-1 h-full bg-gray-200 border border-gray-500 invalid:border-red-500"
+                            node_ref=code_input_elem
                         />
                         <input
                             type="submit"
@@ -206,9 +210,9 @@ pub fn Login() -> impl IntoView {
                         view! {
                             {move || {
                                 if let Some(Err(err)) = answer_email_login_challenge.value().get() {
-                                    format!("Error: {}", err.to_string())
+                                    format!("Error: {err}")
                                 } else {
-                                    format!("")
+                                    String::new()
                                 }
                             }}
                         }
