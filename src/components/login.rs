@@ -151,6 +151,7 @@ pub fn Login() -> impl IntoView {
                         name="email"
                         placeholder="email"
                         class="px-1 h-full bg-gray-200 border border-gray-500 invalid:border-red-500"
+                        required
                         bind:value=email
                     />
                     <input
@@ -174,9 +175,9 @@ pub fn Login() -> impl IntoView {
                     view! {
                         {move || {
                             if let Some(Err(err)) = get_email_login_challenge.value().get() {
-                                format!("Error: {err}")
+                                view! { <ShowError error=err /> }.into_any()
                             } else {
-                                String::new()
+                                view! {}.into_any()
                             }
                         }}
                     }
@@ -202,6 +203,7 @@ pub fn Login() -> impl IntoView {
                             name="response"
                             placeholder="response"
                             class="px-1 h-full bg-gray-200 border border-gray-500 invalid:border-red-500"
+                            required
                             node_ref=code_input_elem
                         />
                         <input
@@ -225,9 +227,9 @@ pub fn Login() -> impl IntoView {
                         view! {
                             {move || {
                                 if let Some(Err(err)) = answer_email_login_challenge.value().get() {
-                                    format!("Error: {err}")
+                                    view! { <ShowError error=err /> }.into_any()
                                 } else {
-                                    String::new()
+                                    view! {}.into_any()
                                 }
                             }}
                         }
