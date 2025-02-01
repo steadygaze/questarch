@@ -1,0 +1,5 @@
+[toolchain]
+channel = "nightly"
+components = [ "cargo", "clippy", "rustc" ]
+targets = [ "wasm32-unknown-unknown", "x86_64-unknown-linux-gnu" ]
+profile = "default"
