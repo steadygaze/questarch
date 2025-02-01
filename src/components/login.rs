@@ -24,7 +24,6 @@ use rand::{
 #[cfg(feature = "ssr")]
 use lettre::AsyncTransport;
 
-#[allow(dead_code)] // Used in a server function, but rustc doesn't count it.
 const LOGIN_SESSION_EXPIRATION_SEC: i64 = 20 * 60; // 20 minutes
 
 /// Email authentication first stage, where a challenge is generated and
@@ -184,8 +183,9 @@ pub fn Login() -> impl IntoView {
                 }
             >
                 <p>
-                    An email has been sent to {last_email}
-                    with a login code; please enter it here within 20 minutes.
+                    "An email has been sent to " {last_email}
+                    " with a login code; please enter it here within "
+                    {LOGIN_SESSION_EXPIRATION_SEC / 60} " minutes".
                 </p>
 
                 <ActionForm action=answer_email_login_challenge>
