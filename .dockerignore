@@ -2,6 +2,9 @@ LICENSE
 README.md
 .git/
 
+# rustup update can break (https://github.com/rust-lang/rustup/issues/2417); let the container manage the rust version independently
+rust-toolchain.toml
+
 # Compiled artifacts (outside the dev container, e.g. by rust-analyzer)
 Cargo.lock
 debug/
