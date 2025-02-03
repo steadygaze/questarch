@@ -81,9 +81,10 @@ async fn answer_email_login_challenge(
     if email.len() <= 0
         || challenge.len() != CHALLENGE_LENGTH
         || response.len() != RESPONSE_LENGTH
-        || challenge.chars().all(char::is_alphanumeric)
-        || response.chars().all(char::is_alphanumeric)
+        || !challenge.chars().all(char::is_alphanumeric)
+        || !response.chars().all(char::is_alphanumeric)
     {
+        leptos::logging::debug_warn!("Rejecting invalid login challenge inputs");
         // Note that the actual form should never send these inputs.
         return Ok(false);
     }
