@@ -7,7 +7,7 @@ use lettre::{
     message::{MultiPart, SinglePart, header},
 };
 
-pub fn login_code(email_address: Address, code: &str) -> Result<Message, Error> {
+pub fn login_code(email_address: Address, code: &str, minutes: i64) -> Result<Message, Error> {
     // Create the html we want to send.
     let html = view! {
         <head>
@@ -25,7 +25,8 @@ pub fn login_code(email_address: Address, code: &str) -> Result<Message, Error> 
             <p>"This is an email login code for <site>."</p>
             <p class="bigcode">{code}</p>
             <p>
-                "Please go back to the page you requested it from and enter it there. If you did not request this login code, you can ignore it."
+                "This code will expire in " {minutes}
+                " minutes. Please go back to the page you requested it from and enter it there. If you did not request this login code, you can ignore it."
             </p>
             <p>"Goodbye."</p>
         </div>

@@ -24,7 +24,7 @@ use rand::{
 #[cfg(feature = "ssr")]
 use lettre::AsyncTransport;
 
-const LOGIN_SESSION_EXPIRATION_SEC: i64 = 20 * 60; // 20 minutes
+const LOGIN_SESSION_EXPIRATION_MIN: i64 = 20;
 
 #[cfg(feature = "ssr")]
 const CHALLENGE_LENGTH: usize = 32;
@@ -45,7 +45,7 @@ async fn get_email_login_challenge(email: String) -> Result<String, ServerFnErro
     let challenge = Alphanumeric.sample_string(&mut thread_rng(), CHALLENGE_LENGTH);
     let response = Alphanumeric.sample_string(&mut thread_rng(), RESPONSE_LENGTH);
 
-    let message = mail::login_code(address, &response)
+    let message = mail::login_code(address, &response, LOGIN_SESSION_EXPIRATION_MIN)
         .or_else(|err| Err(ServerFnError::new(format!("Couldn't send mail: {err}"))))?;
     app_state
         .mailer
@@ -61,7 +61,9 @@ async fn get_email_login_challenge(email: String) -> Result<String, ServerFnErro
             HashMap::from([("email", email), ("response", response)]),
         )
         .await?;
-    let _: () = tx.expire(&key, LOGIN_SESSION_EXPIRATION_SEC, None).await?;
+    let _: () = tx
+        .expire(&key, LOGIN_SESSION_EXPIRATION_MIN * 60, None)
+        .await?;
     let _: () = tx.exec(false).await?;
     Ok(challenge)
 }
@@ -205,7 +207,7 @@ pub fn Login() -> impl IntoView {
                 <p>
                     "An email has been sent to " {last_email}
                     " with a login code; please enter it here within "
-                    {LOGIN_SESSION_EXPIRATION_SEC / 60} " minutes".
+                    {LOGIN_SESSION_EXPIRATION_MIN} " minutes".
                 </p>
 
                 <ActionForm action=answer_email_login_challenge>
