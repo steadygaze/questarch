@@ -26,17 +26,26 @@ use lettre::AsyncTransport;
 
 const LOGIN_SESSION_EXPIRATION_SEC: i64 = 20 * 60; // 20 minutes
 
+#[cfg(feature = "ssr")]
+const CHALLENGE_LENGTH: usize = 32;
+const RESPONSE_LENGTH: usize = 8;
+
 /// Email authentication first stage, where a challenge is generated and
 /// returned, while the correct response is sent via email.
 ///
 /// See https://en.wikipedia.org/wiki/Challenge%E2%80%93response_authentication
 #[server]
-pub async fn get_email_login_challenge(email: String) -> Result<String, ServerFnError> {
-    let app_state = use_app_state()?;
-    let challenge = Alphanumeric.sample_string(&mut thread_rng(), 32);
-    let response = Alphanumeric.sample_string(&mut thread_rng(), 8);
+async fn get_email_login_challenge(email: String) -> Result<String, ServerFnError> {
+    let address = match email.parse::<lettre::address::Address>() {
+        Ok(email) => email,
+        Err(_) => return Err(ServerFnError::new("Bad email")),
+    };
 
-    let message = mail::login_code(&email, &response)
+    let app_state = use_app_state()?;
+    let challenge = Alphanumeric.sample_string(&mut thread_rng(), CHALLENGE_LENGTH);
+    let response = Alphanumeric.sample_string(&mut thread_rng(), RESPONSE_LENGTH);
+
+    let message = mail::login_code(address, &response)
         .or_else(|err| Err(ServerFnError::new(format!("Couldn't send mail: {err}"))))?;
     app_state
         .mailer
@@ -62,11 +71,21 @@ pub async fn get_email_login_challenge(email: String) -> Result<String, ServerFn
 /// Note that, for security reasons, we can't tell the user which exactly of
 /// (email, challenge, response) was wrong.
 #[server]
-pub async fn answer_email_login_challenge(
+async fn answer_email_login_challenge(
     email: String,
     challenge: String,
     response: String,
 ) -> Result<bool, ServerFnError> {
+    if email.len() <= 0
+        || challenge.len() != CHALLENGE_LENGTH
+        || response.len() != RESPONSE_LENGTH
+        || challenge.chars().all(char::is_alphanumeric)
+        || response.chars().all(char::is_alphanumeric)
+    {
+        // Note that the actual form should never send these inputs.
+        return Ok(false);
+    }
+
     let app_state = use_app_state()?;
     let key = key::email_auth_code(&challenge);
     let correct_data: HashMap<String, String> = match app_state
@@ -173,10 +192,11 @@ pub fn Login() -> impl IntoView {
                 fallback=move || {
                     view! {
                         {move || {
-                            if let Some(Err(err)) = get_email_login_challenge.value().get() {
-                                view! { <ShowError error=err /> }.into_any()
-                            } else {
-                                view! {}.into_any()
+                            match get_email_login_challenge.value().get() {
+                                Some(Err(err)) => {
+                                    view! { <ShowServerFnError error=err /> }.into_any()
+                                }
+                                _ => view! {}.into_any(),
                             }
                         }}
                     }
@@ -203,6 +223,12 @@ pub fn Login() -> impl IntoView {
                             name="response"
                             placeholder="response"
                             class="px-1 h-full bg-gray-200 border border-gray-500 invalid:border-red-500"
+                            minlength=RESPONSE_LENGTH
+                            maxlength=RESPONSE_LENGTH
+                            pattern="^[A-Za-z0-9]*$"
+                            title=format!(
+                                "exactly {RESPONSE_LENGTH} uppercase, lowercase, or numeric characters",
+                            )
                             required
                             node_ref=code_input_elem
                         />
@@ -227,7 +253,7 @@ pub fn Login() -> impl IntoView {
                         view! {
                             {move || {
                                 if let Some(Err(err)) = answer_email_login_challenge.value().get() {
-                                    view! { <ShowError error=err /> }.into_any()
+                                    view! { <ShowServerFnError error=err /> }.into_any()
                                 } else {
                                     view! {}.into_any()
                                 }

@@ -44,19 +44,27 @@ pub fn Spinner() -> impl IntoView {
 
 /// Display a ServerFnError.
 #[component]
-pub fn ShowError(error: ServerFnError) -> impl IntoView {
+pub fn ShowServerFnError(error: ServerFnError) -> impl IntoView {
+    view! {
+        <ShowError error=match error {
+            ServerFnError::Deserialization(msg) if msg == "Could not deserialize error \"\"" => {
+                String::from(
+                    "The server returned an empty response. If you've kept this page open for a long time, a new version of the server may have released. Try refreshing the page.",
+                )
+            }
+            _ => error.to_string(),
+        } />
+    }
+}
+
+/// Display error text.
+#[component]
+pub fn ShowError(error: String) -> impl IntoView {
     view! {
         <span class="bg-red-100">
             <span class="font-bold text-red-900">Error:</span>
             " "
-            {match error {
-                ServerFnError::Deserialization(msg) if msg == "Could not deserialize error \"\"" => {
-                    String::from(
-                        "The server returned an empty response. If you've kept this page open for a long time, a new version of the server may have released. Try refreshing the page.",
-                    )
-                }
-                _ => error.to_string(),
-            }}
+            {error}
         </span>
     }
 }

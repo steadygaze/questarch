@@ -1,11 +1,13 @@
 use leptos::prelude::*;
 use lettre::{
     Message,
+    address::Address,
     error::Error,
+    message::Mailbox,
     message::{MultiPart, SinglePart, header},
 };
 
-pub fn login_code(email_address: &str, code: &str) -> Result<Message, Error> {
+pub fn login_code(email_address: Address, code: &str) -> Result<Message, Error> {
     // Create the html we want to send.
     let html = view! {
         <head>
@@ -46,7 +48,7 @@ Goodbye.
 
     Message::builder()
         .from("No Reply <noreply@example.com>".parse().unwrap())
-        .to(format!("<{email_address}>").parse().unwrap())
+        .to(Mailbox::new(None, email_address))
         .subject("Email login/registration code")
         .multipart(
             MultiPart::alternative()
