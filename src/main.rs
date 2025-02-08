@@ -33,6 +33,11 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("database should open");
 
+    sqlx::migrate!()
+        .run(&db_pool)
+        .await
+        .expect("migrations should succeed");
+
     let valkey_url = std::env::var("VALKEY_URL").expect("VALKEY_URL should be set");
     let valkey_config = fred::prelude::Config::from_url(&valkey_url)
         .expect("should be able to construct Valkey config");

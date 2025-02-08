@@ -9,20 +9,9 @@ use std::collections::HashMap;
 use crate::app_state::*;
 #[cfg(feature = "ssr")]
 use crate::key;
-#[cfg(feature = "ssr")]
-use crate::mail;
 
 #[cfg(feature = "ssr")]
 use fred::prelude::{HashesInterface, KeysInterface, TransactionInterface};
-
-#[cfg(feature = "ssr")]
-use rand::{
-    distributions::{Alphanumeric, DistString},
-    thread_rng,
-};
-
-#[cfg(feature = "ssr")]
-use lettre::AsyncTransport;
 
 const LOGIN_SESSION_EXPIRATION_MIN: i64 = 20;
 
@@ -36,6 +25,14 @@ const RESPONSE_LENGTH: usize = 8;
 /// See https://en.wikipedia.org/wiki/Challenge%E2%80%93response_authentication
 #[server]
 async fn get_email_login_challenge(email: String) -> Result<String, ServerFnError> {
+    use crate::mail;
+
+    use lettre::AsyncTransport;
+    use rand::{
+        distributions::{Alphanumeric, DistString},
+        thread_rng,
+    };
+
     let address = match email.parse::<lettre::address::Address>() {
         Ok(email) => email,
         Err(_) => return Err(ServerFnError::new("Bad email")),
@@ -78,6 +75,8 @@ async fn answer_email_login_challenge(
     challenge: String,
     response: String,
 ) -> Result<bool, ServerFnError> {
+    use uuid::Uuid;
+
     if email.len() <= 0
         || challenge.len() != CHALLENGE_LENGTH
         || response.len() != RESPONSE_LENGTH
@@ -114,6 +113,39 @@ async fn answer_email_login_challenge(
                 leptos::logging::warn!("Error deleting key {key} ignored: {err}");
             }
         });
+
+        match sqlx::query_as::<_, (Uuid, bool, Option<String>, Option<String>)>(
+            r#"
+            select
+              account.id,
+              ask_for_profile_on_login,
+              profile.username,
+              profile.display_name
+            from
+              account
+              left join profile on account.default_profile = profile.id
+            where
+              email = $1
+              or $1 = any(secondary_email)
+            limit 1
+            "#,
+        )
+        .bind(&email)
+        .fetch_optional(&app_state.db_pool)
+        .await
+        .or_else(|err| {
+            Err(ServerFnError::new(format!(
+                "Couldn't get account from DB: {err}"
+            )))
+        })? {
+            Some((account_id, ask_for_profile_on_login, username, display_name)) => {
+                leptos::logging::log!("You do have an account");
+            }
+            None => {
+                leptos::logging::log!("You don't have an account");
+            }
+        }
+
         Ok(true)
     } else {
         Ok(false)
