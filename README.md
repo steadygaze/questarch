@@ -5,8 +5,6 @@
 To run a development environment, first create a file `.env` that sets some required environment variables.
 
 ```
-# Important: if set, the DATABASE_URL must match the user, password and DB name.
-DATABASE_URL=postgres://postgres:my_db_password@postgres/ink
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=my_db_password
 POSTGRES_DB=ink
@@ -49,8 +47,10 @@ docker exec -it inksite bash
 To run `psql` to use the database directly (`sh -c` is needed to expand `$POSTGRES_USER`):
 
 ```shell
-docker exec -it postgres sh -c 'psql -U $POSTGRES_USER'
+docker exec -it postgres sh -c 'psql -U $POSTGRES_USER -d $POSTGRES_DB'
 ```
+
+Database migrations are incremental changes to the database schema over time, for use in development and when deploying new versions of the server. The `sqlx` CLI is included in the main application container, which also has the `DATABASE_URL` env var set already. So when you start `bash` in the main container, `sqlx` will just work. If you prefer, you can also run `sqlx` from your host system, passing in the correct value for `--database_url`. Consult `sqlx help` for more info.
 
 ### Memory overcommit
 
@@ -109,6 +109,20 @@ If on a restart of `docker compose --watch`, `rustc` claims a newly-added file i
 ```
 docker compose --watch --build
 ```
+
+### Database migration failure
+
+Database migrations can fail if changes were made to a migration file after it was run.
+
+```
+[2025-02-02T23:53:57Z INFO  sqlx::postgres::notice] relation "_sqlx_migrations" already exists, skipping
+
+thread 'main' panicked at src/main.rs:39:10:
+migrations should succeed: VersionMismatch(20250202003439)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+You can revert the whole DB to a clean state with `sqlx database reset`, or try undoing the latest migration with `sqlx migrate revert` and redoing it with `sqlx migrate run`. Note that this may result in data loss (of your test data).
 
 ## Miscellaneous
 
