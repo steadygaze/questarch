@@ -1,11 +1,11 @@
 use leptos::prelude::*;
-use leptos_meta::{Stylesheet, Title, provide_meta_context};
+use leptos_meta::{Body, Stylesheet, Title, provide_meta_context};
 use leptos_router::{
     StaticSegment, WildcardSegment,
     components::{Route, Router, Routes},
 };
 
-use crate::components;
+use crate::components::auth::AuthRoutes;
 use crate::components::ui::*;
 
 #[component]
@@ -28,15 +28,16 @@ pub fn App() -> impl IntoView {
                     <ANorm href="/">Home</ANorm>
                 </div>
                 <div>
-                    <ANorm href="/login">Login/register</ANorm>
+                    <ANorm href="/auth">Login/register</ANorm>
                 </div>
             </nav>
             <main>
                 <Routes fallback=move || "Not found.">
                     <Route path=StaticSegment("") view=HomePage />
-                    <Route path=StaticSegment("login") view=components::login::Login />
+                    <AuthRoutes />
                     <Route path=WildcardSegment("any") view=NotFound />
                 </Routes>
+                <Body {..} class="p-4 mx-auto max-w-7xl" />
             </main>
         </Router>
     }

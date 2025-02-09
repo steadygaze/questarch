@@ -1,4 +1,3 @@
-/// Login/new registration views.
 use crate::components::ui::*;
 use leptos::prelude::*;
 
@@ -101,60 +100,60 @@ async fn answer_email_login_challenge(
 
     let correct_email = match correct_data.get("email") {
         Some(value) => value,
-        None => return Ok(false), // Different email = wrong login.
+        None => return Ok(false), // No email = wrong login.
     };
     let correct_response = match correct_data.get("response") {
         Some(value) => value,
-        None => return Ok(false), // Wrong response = wrong login.
+        None => return Ok(false), // No response = wrong login.
     };
-    if email == *correct_email && response == *correct_response {
-        tokio::spawn(async move {
-            if let Err(err) = app_state.valkey_pool.del::<(), _>(&key).await {
-                leptos::logging::warn!("Error deleting key {key} ignored: {err}");
-            }
-        });
-
-        match sqlx::query_as::<_, (Uuid, bool, Option<String>, Option<String>)>(
-            r#"
-            select
-              account.id,
-              ask_for_profile_on_login,
-              profile.username,
-              profile.display_name
-            from
-              account
-              left join profile on account.default_profile = profile.id
-            where
-              email = $1
-              or $1 = any(secondary_email)
-            limit 1
-            "#,
-        )
-        .bind(&email)
-        .fetch_optional(&app_state.db_pool)
-        .await
-        .or_else(|err| {
-            Err(ServerFnError::new(format!(
-                "Couldn't get account from DB: {err}"
-            )))
-        })? {
-            Some((account_id, ask_for_profile_on_login, username, display_name)) => {
-                leptos::logging::log!("You do have an account");
-            }
-            None => {
-                leptos::logging::log!("You don't have an account");
-            }
-        }
-
-        Ok(true)
-    } else {
-        Ok(false)
+    if email != *correct_email || response != *correct_response {
+        return Ok(false); // Wrong email or response = wrong login.
     }
+
+    // Response accepted; clean it up as it's a one-time code.
+    tokio::spawn(async move {
+        if let Err(err) = app_state.valkey_pool.del::<(), _>(&key).await {
+            leptos::logging::warn!("Error deleting key {key} ignored: {err}");
+        }
+    });
+
+    match sqlx::query_as::<_, (Uuid, bool, Option<String>, Option<String>)>(
+        r#"
+        select
+          account.id,
+          ask_for_profile_on_login,
+          profile.username,
+          profile.display_name
+        from
+          account
+          left join profile on account.default_profile = profile.id
+        where
+          email = $1
+          or $1 = any(secondary_email)
+        limit 1
+        "#,
+    )
+    .bind(&email)
+    .fetch_optional(&app_state.db_pool)
+    .await
+    .or_else(|err| {
+        Err(ServerFnError::new(format!(
+            "Couldn't get account from DB: {err}"
+        )))
+    })? {
+        Some((_account_id, _ask_for_profile_on_login, _username, _display_name)) => {
+            leptos::logging::log!("You do have an account");
+        }
+        None => {
+            leptos::logging::log!("You don't have an account");
+        }
+    }
+
+    Ok(true)
 }
 
-/// Main login page.
 #[component]
-pub fn Login() -> impl IntoView {
+pub fn EmailAuth() -> impl IntoView {
     let get_email_login_challenge = ServerAction::<GetEmailLoginChallenge>::new();
     let answer_email_login_challenge = ServerAction::<AnswerEmailLoginChallenge>::new();
 
@@ -189,10 +188,8 @@ pub fn Login() -> impl IntoView {
     });
 
     view! {
-        <h1 class="text-xl font-bold">"Login/register"</h1>
-
-        <fieldset class="pt-1 pb-2 my-2 border-2 border-slate-500">
-            <legend class="font-bold text-l">Email challenge</legend>
+        <fieldset class="px-2 pt-1 pb-2 mb-2 border-2 border-slate-500">
+            <legend class="mx-2 text-2xl font-bold">Email challenge</legend>
 
             <p>Receive and input a login code sent to the given email address.</p>
 
