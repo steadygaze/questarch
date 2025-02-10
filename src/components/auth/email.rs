@@ -262,6 +262,8 @@ pub fn EmailAuth() -> impl IntoView {
                                 "exactly {RESPONSE_LENGTH} uppercase, lowercase, or numeric characters",
                             )
                             required
+                            autocomplete="off"
+                            value=""
                             node_ref=code_input_elem
                         />
                         <input
