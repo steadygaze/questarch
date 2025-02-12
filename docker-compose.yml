@@ -12,7 +12,7 @@ services:
     tty: true # for terminal colors
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
-      LEPTOS_TAILWIND_VERSION: "v4.0.3"
+      LEPTOS_TAILWIND_VERSION: "v4.0.6"
       SMTP_URL: "smtp://mailpit:1025"
       VALKEY_URL: "valkey://valkey:6379"
     restart: unless-stopped
