@@ -52,6 +52,18 @@ docker exec -it postgres sh -c 'psql -U $POSTGRES_USER -d $POSTGRES_DB'
 
 Database migrations are incremental changes to the database schema over time, for use in development and when deploying new versions of the server. The `sqlx` CLI is included in the main application container, which also has the `DATABASE_URL` env var set already. So when you start `bash` in the main container, `sqlx` will just work. If you prefer, you can also run `sqlx` from your host system, passing in the correct value for `--database_url`. Consult `sqlx help` for more info.
 
+To run `valkey-cli` to inspect and write the contents of Valkey:
+
+```shell
+docker exec -it valkey sh -c 'valkey-cli'
+```
+
+Also helpful is the `MONITOR` command, which prints out every command it receives:
+
+```shell
+docker exec -it valkey sh -c 'valkey-cli monitor'
+```
+
 ### Memory overcommit
 
 The option `vm.overcommit_memory` is necessary for Valkey to ensure persistence works ([1](https://redis.io/docs/latest/develop/get-started/faq/#background-saving-fails-with-a-fork-error-on-linux), [2](https://medium.com/@akhshyganesh/redis-enabling-memory-overcommit-is-a-crucial-configuration-68dbb77dae5f)). This is a property of the host OS and not the Valkey container. If unset, Valkey will print a warning when it starts. You can dismiss the warning by running
