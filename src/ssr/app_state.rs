@@ -1,5 +1,6 @@
 use crate::ssr::cookie::set_cookie;
 use crate::ssr::key;
+use crate::ssr::uuid_codec::{decode_uuid, encode_uuid};
 
 use actix_web::HttpRequest;
 use actix_web::cookie;
@@ -69,7 +70,7 @@ impl AppState {
                 .hset::<i64, _, _>(
                     key::session(&session_id),
                     [
-                        ("acctid", account_id.simple().to_string()),
+                        ("acctid", encode_uuid(account_id)),
                         ("uname", username.unwrap_or_default()),
                         ("dname", display_name.unwrap_or_default()),
                     ],
@@ -79,7 +80,7 @@ impl AppState {
             let _ = transaction
                 .hset::<i64, _, _>(
                     key::session(&session_id),
-                    ("acctid", account_id.simple().to_string()),
+                    ("acctid", encode_uuid(account_id)),
                 )
                 .await;
         }

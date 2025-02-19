@@ -26,6 +26,7 @@ log = { version = "0.4.25", optional = true }
 uuid = { version = "1.13.1", features = ["fast-rng", "v7"], optional = true }
 leptos-use = { version = "0.15.6", features = ["storage", "use_cookie"] }
 codee = "0.2" # Must be same as the one used by leptos-use
+bs58 = { version = "0.5.1", optional = true }
 
 [features]
 csr = ["leptos/csr"]
@@ -34,6 +35,7 @@ ssr = [
   "dep:actix-files",
   "dep:actix-web",
   "dep:env_logger",
+  "dep:bs58",
   "dep:fred",
   "dep:leptos_actix",
   "dep:lettre",
