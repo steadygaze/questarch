@@ -314,11 +314,10 @@ pub fn Register() -> impl IntoView {
                             id="username"
                             placeholder="Username"
                             required
-                            minlength="3"
+                            minlength="5"
                             maxlength="20"
-                            pattern="[a-z][a-z0-9]*"
-                            title="starts with a letter and has only lowercase letters and numbers"
-                            autocomplete="off"
+                            pattern="[a-z][a-z0-9]{4,19}"
+                            title="starts with a letter, has only lowercase letters and numbers, and is between 5 and 20 characters long"
                             class="p-0.5 border-2 border-slate-300 disabled:border-slate-100"
                             bind:value=username
                             on:input:target=move |ev| {
@@ -328,8 +327,8 @@ pub fn Register() -> impl IntoView {
                         <p>
                             A username is also used to identify you, but may be abbreviated
                             compared to the display name. It may be used by others to refer to
-                            you. It may contain only letters or numbers, be between three and
-                            thirty characters long, and must start with a letter.
+                            you. It must start with a letter, have only lowercase letters and
+                            numbers, and be between 5 and 20 characters long.
                         </p>
                     </div>
                     <div class="py-2">
