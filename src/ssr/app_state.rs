@@ -1,5 +1,5 @@
-use crate::cookie::set_cookie;
-use crate::key;
+use crate::ssr::cookie::set_cookie;
+use crate::ssr::key;
 
 use actix_web::HttpRequest;
 use actix_web::cookie;

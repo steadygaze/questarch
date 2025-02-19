@@ -7,13 +7,12 @@ use leptos_router::{MatchNestedRoutes, path};
 use leptos_use::use_cookie;
 
 #[cfg(feature = "ssr")]
-use crate::key;
-#[cfg(feature = "ssr")]
-use crate::mail;
-#[cfg(feature = "ssr")]
 mod ssr {
-    pub use crate::app_state::*;
-    pub use crate::cookie::*;
+    pub use crate::ssr::app_state::*;
+    pub use crate::ssr::cookie::*;
+    pub use crate::ssr::key;
+    pub use crate::ssr::mail;
+
     pub use actix_web::HttpRequest;
     pub use actix_web::cookie;
     pub use actix_web::cookie::Cookie;

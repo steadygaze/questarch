@@ -1,18 +1,12 @@
-#[cfg(feature = "ssr")]
-mod app_state;
 mod components;
 #[cfg(feature = "ssr")]
-mod cookie;
-#[cfg(feature = "ssr")]
-mod key;
-#[cfg(feature = "ssr")]
-mod mail;
+mod ssr;
 
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    use crate::app_state::AppState;
     use crate::components::app::*;
+    use crate::ssr::app_state::AppState;
 
     use actix_files::Files;
     use actix_web::*;

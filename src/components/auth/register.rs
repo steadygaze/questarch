@@ -8,8 +8,8 @@ use leptos_use::use_cookie;
 
 #[cfg(feature = "ssr")]
 mod ssr {
-    pub use crate::app_state::*;
-    pub use crate::cookie::*;
+    pub use crate::ssr::app_state::*;
+    pub use crate::ssr::cookie::*;
 
     pub use actix_web::HttpRequest;
     pub use leptos_actix::extract;
@@ -346,7 +346,7 @@ pub fn Register() -> impl IntoView {
 
 #[server]
 async fn cancel_registration() -> Result<(), ServerFnError> {
-    use crate::cookie::*;
+    use crate::ssr::cookie::*;
     let response_options = use_response_options()?;
     remove_cookie(&response_options, "regcode")?;
     // TODO - Delete server saved registration info.
