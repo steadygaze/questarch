@@ -2,6 +2,8 @@
 mod app_state;
 mod components;
 #[cfg(feature = "ssr")]
+mod cookie;
+#[cfg(feature = "ssr")]
 mod key;
 #[cfg(feature = "ssr")]
 mod mail;
