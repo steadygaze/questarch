@@ -11,6 +11,9 @@ debug/
 site/
 target/
 
+# npm installed packages
+node_modules/
+
 # Container-generated data
 docker/data/
 docker/site/
