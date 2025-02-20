@@ -82,6 +82,22 @@ to `/etc/sysctl.conf`.
 
 ## Troubleshooting
 
+### Starting over
+
+The command
+
+```
+docker compose up --watch --build
+```
+
+still doesn't necessarily redo cached steps. Try stopping all containers and running
+
+```
+docker system prune --all
+```
+
+if you really want to make sure everything is being recreated from scratch.
+
 ### `wasm-bindgen` version
 
 You may see an error message like this when building the frontend after a `git pull`.
@@ -113,6 +129,8 @@ docker compose --watch --build
 ### Styles not updating
 
 In some circumstances, hot reloading will update the `class` attribute, but may not reload the stylesheet. Tailwind, when building, generates a stylesheet with only the utility classes that are actually used in the project. This is a problem if you use any new Tailwind classes that haven't been previously generated; the browser will not see the new CSS classes in its cached stylesheet. To fix this, hard refresh (`ctrl-shift-r`) your browser manually or disable caching.
+
+Even if the daisyUI version is changed in `package.json`, daisyUI is only installed/updated on image creation. To really update to a new version, you can attach to the container after the updated `package.json` is copied over by Docker compose watch and run `npm install` again, or delete and recreate the image.
 
 ### Missing new files, compilation errors after `git pull`, etc.
 
