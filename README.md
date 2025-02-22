@@ -1,4 +1,4 @@
-# Inksite
+# Questarch
 
 ## Getting started
 
@@ -41,7 +41,7 @@ By default, build outputs are persisted in `docker/site` and `docker/target` so 
 To attach to and run arbitrary commands in the running container (for example, to use the `sqlx` CLI):
 
 ```shell
-docker exec -it inksite bash
+docker exec -it questarch bash
 ```
 
 To run `psql` to use the database directly (`sh -c` is needed to expand `$POSTGRES_USER`):

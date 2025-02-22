@@ -1,9 +1,9 @@
 # Docker compose setup for the app, suitable for development only.
 
 services:
-  inksite:
+  questarch:
     build: .
-    container_name: inksite
+    container_name: questarch
     networks:
       - main_network
     ports:
