@@ -4,27 +4,7 @@ FROM rustlang/rust:nightly
 
 RUN apt update && apt install -y pkg-config libssl-dev wget
 
-# # Install DaisyUI inputs to Tailwind
-# RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-# RUN . "$HOME/.nvm/nvm.sh"
-# RUN which nvm
-# RUN nvm install 22
-# RUN npm -v
-# RUN npm install
-
-# ENV NVM_DIR /usr/local/nvm
-# ENV NODE_VERSION 22
-
-# # Install nvm with node and npm
-# RUN wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.20.0/install.sh | bash \
-#     && . $NVM_DIR/nvm.sh \
-#     && nvm install $NODE_VERSION \
-#     && nvm alias default $NODE_VERSION \
-#     && nvm use default
-
-# ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
-# ENV PATH $NVM_DIR/v$NODE_VERSION/bin:$PATH
-
+# Install nvm with node and npm
 ENV NODE_VERSION=22.14.0
 RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 ENV NVM_DIR=/root/.nvm
@@ -55,7 +35,8 @@ RUN rustup target add wasm32-unknown-unknown
 WORKDIR /app
 COPY . /app
 
-RUN npm install # Uses WORKDIR
+# Install DaisyUI inputs to Tailwind; uses WORKDIR
+RUN npm install
 
 # Set any required env variables and
 ENV RUST_LOG="info"
